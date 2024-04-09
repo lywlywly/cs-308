@@ -1,0 +1,411 @@
+\documentclass[10pt]{article}
+
+\usepackage[margin=1in]{geometry}
+% https://tex.stackexchange.com/questions/27802/set-noindent-for-entire-file
+\setlength\parindent{0pt}
+% https://tex.stackexchange.com/questions/9550/why-does-underlined-text-not-get-wrapped-once-it-hits-the-end-of-a-line
+\usepackage{soul}
+\usepackage{indentfirst}
+\usepackage{amsmath,amsthm,amssymb,scrextend}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+% \usepackage{fancyhdr}
+% \setlength{\headheight}{14.49998pt}
+% \pagestyle{fancy}
+\usepackage{graphicx}
+
+\newcommand{\cont}{\subseteq}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{width=10cm,compat=1.9}
+
+\usepackage{amsmath}
+\usepackage[mathscr]{euscript}
+\let\euscr\mathscr \let\mathscr\relax
+\usepackage[scr]{rsfso}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{multicol}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\DeclareMathOperator{\arcsec}{arcsec}
+\DeclareMathOperator{\arccot}{arccot}
+\DeclareMathOperator{\arccsc}{arccsc}
+\newcommand{\ddx}{\frac{d}{dx}}
+\newcommand{\dfdx}{\frac{df}{dx}}
+\newcommand{\ddxp}[1]{\frac{d}{dx}\left( #1 \right)}
+\newcommand{\dydx}{\frac{dy}{dx}}
+\let\ds\displaystyle
+\newcommand{\intx}[1]{\int #1 \, dx}
+\newcommand{\intt}[1]{\int #1 \, dt}
+\newcommand{\defint}[3]{\int_{#1}^{#2} #3 \, dx}
+\newcommand{\imp}{\Rightarrow}
+\newcommand{\un}{\cup}
+\newcommand{\inter}{\cap}
+\newcommand{\ps}{\mathscr{P}}
+\newcommand{\set}[1]{\left\{ #1 \right\}}
+\newtheorem*{sol}{Solution}
+\newtheorem*{claim}{Claim}
+\newtheorem{problem}{Problem}
+\def\mathbi#1{\textbf{\em #1}}
+\begin{document}
+
+% \lhead{Stats 303}
+% \chead{Luyao Wang lw337}
+% \rhead{\today}
+
+\begin{center}
+  {\Large \bf COMPSCI 308: Design and Analysis of Algorithms Homework 3}
+  \vspace{2mm}
+
+  {\bf Luyao Wang}
+
+  {\today}
+\end{center}
+
+\section*{1. Greedy Algorithms}
+\subsection*{(a) Pseudocode}
+
+\begin{algorithm}[H]
+  \caption{Greedy Range Cover Algorithm}
+  \begin{algorithmic}[1]
+    \Function{GreedyRangeCover}{$A$, $\text{length}$}
+    \State $rangeList \gets$ empty list
+    \State $currentRangeStart \gets A[0]$
+    \State $currentRangeEnd \gets A[0] + \text{length}$
+
+    \For{$i \gets 1$ to $\text{length}(A)$}
+    \If{$A[i] \leq currentRangeEnd$}
+    \Comment{Add the last range to the list}
+    \State \textbf{continue}
+    \Else
+    \Comment{Add the current range to the list and start a new range}
+    \State $rangeList$.append([$currentRangeStart$, $currentRangeEnd$])
+    \State $currentRangeStart \gets A[i]$
+    \State $currentRangeEnd \gets A[i] + \text{length}$
+    \EndIf
+    \EndFor
+
+    \State $rangeList$.append([$currentRangeStart$, $currentRangeEnd$])
+    \State \textbf{return} $rangeList.length$
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
+\subsection*{(b) Pseudocode + Optimality}
+
+\begin{algorithm}[H]
+  \caption{Two Room Activity Selection}
+  \begin{algorithmic}[1]
+    \Procedure{TwoRoomActivitySelection}{activities: list[Activity]}
+    \State activities.sort(key=x => x.end) \Comment{Sort activities by ending time}
+    \State A1 = [Activity(-inf, -inf)] \Comment{Activities assigned to room 1}
+    \State A2 = [Activity(-inf, -)] \Comment{Activities assigned to room 2}
+
+    \For{activity in activities}
+    \If{activity.start $<$ A1[-1].end \textbf{ and } activity.start $<$ A2[-1].end}
+    \State \textbf{continue} \Comment{Skip the activity}
+    \ElsIf{activity.start $\geq$ A1[-1].end \textbf{ and } activity.start $<$ A2[-1].end}
+    \State A1.append(activity) \Comment{Assign activity to room 1}
+    \ElsIf{activity.start $<$ A1[-1].end \textbf{ and } activity.start $\geq$ A2[-1].end}
+    \State A2.append(activity) \Comment{Assign activity to room 2}
+    \ElsIf{activity.start $\geq$ A1[-1].end \textbf{ and } activity.start $\geq$ A2[-1].end}
+    \If{A1[-1].end $\geq$ A2[-1].end}
+    \Comment{Assign activity to the room with latest end time}
+    \State A1.append(activity)
+    \Else
+    \State A2.append(activity)
+    \EndIf
+    \EndIf
+    \EndFor
+
+    \State \textbf{return} A1[1:], A2[1:] \Comment{Return activities after the dummy activity}
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+The greedy algorithm employed in the Two Room Activity Selection problem selects the room for an activity based on the room with the \textbf{latest} end time. This strategy aims to replace the activity in the room with the latest ending time, as it maximizes the available "space" in the \textbf{other} room. By doing so, future intervals with early start times can fit into the schedule.
+
+\section*{2. Graph Algorithms}
+
+\subsection*{(a) Programming}
+
+
+\begin{verbatim}
+class Node:
+    def __init__(self, data: int):
+        self.data = data
+        self.next: Node | None = None
+
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def append(self, data: int):
+        new_node = Node(data)
+        if not self.head:
+            self.head = new_node
+        else:
+            curr_node = self.head
+            while curr_node.next:
+                curr_node = curr_node.next
+            curr_node.next = new_node
+
+    def __iter__(self):
+        curr_node = self.head
+        while curr_node:
+            yield curr_node.data
+            curr_node = curr_node.next
+
+
+class GraphAdjacencyList:
+    def __init__(self, v: int):
+        self.v: int = v
+        self.e: int = 0
+        self._adj: list[LinkedList] = [LinkedList() for _ in range(v)]
+
+    def add_edge(self, v: int, w: int):
+        if 0 <= v < self.v and 0 <= w < self.v:
+            self._adj[v].append(w)
+            self.e += 1
+
+    def V(self):
+        return self.v
+
+    def E(self):
+        return self.e
+
+    def adj(self, v: int) -> list[int]:
+        return list(self._adj[v])
+
+    @classmethod
+    def from_adj_matrix(cls, graph: "GraphAdjacencyMatrix"):
+        v = graph.V()
+        adj_list = cls(v)
+
+        for v in range(v):
+            for w in graph.adj(v):
+                adj_list.add_edge(v, w)
+
+        return adj_list
+        
+        
+class GraphAdjacencyMatrix:
+    def __init__(self, v: int):
+        self.v: int = v
+        self.e: int = 0
+        self._adj_matrix: list[list[int]] = [[0] * v for _ in range(v)]
+
+    def add_edge(self, v: int, w: int):
+        if 0 <= v < self.v and 0 <= w < self.v:
+            self._adj_matrix[v][w] = 1
+            self.e += 1
+
+    def V(self):
+        return self.v
+
+    def E(self):
+        return self.e
+
+    def adj(self, v: int) -> list[int]:
+        return [i for i, val in enumerate(self._adj_matrix[v]) if val == 1]
+
+    @classmethod
+    def from_adj_list(cls, graph: GraphAdjacencyList):
+        v = graph.V()
+        adj_list = cls(v)
+
+        for v in range(v):
+            for w in graph.adj(v):
+                adj_list.add_edge(v, w)
+
+        return adj_list
+\end{verbatim}
+
+I have implemented two common graph representations: adjacency matrix and adjacency list for a directed graph. Additionally, I provided a simple version of a linked list for the adjacency list representation.
+
+The conversion methods for converting between the adjacency matrix and adjacency list representations are implemented as \textit{classmethods}.
+
+The time complexity of the conversion algorithms is $O(V^2 + E)$.
+
+\begin{itemize}
+  \item {adj list to adj matrix:
+        $O(V^2)$ for creating a matrix of shape (V, V) and initializing it with zeros.
+        $O(E)$ because there are E edges that need to be created. The cost of creating an edge in the matrix is O(1).
+        }
+  \item {adj matrix to adj list:
+        $O(V^2)$ for iterating over the adjacency matrix of shape (V, V).
+        $O(E)$ because there are E edges that need to be created. The cost of creating an edge in the matrix is O(1).
+        }
+\end{itemize}
+
+Therefore, the total time complexity for both conversion functions, from adjacency list to adjacency matrix and from adjacency matrix to adjacency list, is $O(V^2 + E)$.
+
+\bigbreak
+
+Below is the testing code and the running result.
+
+\begin{verbatim}
+def main():
+    # testing adjacency list
+    print("testing adjacency list")
+    graph0 = GraphAdjacencyList(v=5)
+
+    graph0.add_edge(0, 1)
+    graph0.add_edge(0, 4)
+    graph0.add_edge(1, 2)
+    graph0.add_edge(1, 3)
+    graph0.add_edge(2, 3)
+    graph0.add_edge(3, 4)
+    graph0.add_edge(4, 3)
+    graph0.add_edge(4, 1)
+
+    print(f"Number of vertices: {graph0.V()}")
+    print(f"Number of edges: {graph0.E()}")
+    
+    for v in range(graph0.V()):
+        print(f"Adjacent vertices of {v}: {graph0.adj(v)}")
+
+    # testing adjacency matrix
+    print("testing adjacency matrix")
+
+    graph1 = GraphAdjacencyMatrix(v=5)
+    graph1.add_edge(0, 1)
+    graph1.add_edge(0, 4)
+    graph1.add_edge(1, 2)
+    graph1.add_edge(1, 3)
+    graph1.add_edge(2, 3)
+    graph1.add_edge(3, 4)
+    graph1.add_edge(4, 3)
+    graph1.add_edge(4, 1)
+
+    print(f"Number of vertices: {graph1.V()}")
+    print(f"Number of edges: {graph1.E()}")
+
+    for v in range(graph1.V()):
+        print(f"Adjacent vertices of {v}: {graph1.adj(v)}")
+
+    # testing adj list 2 adj matrix
+    print("testing adj list 2 adj matrix")
+    graph2 = GraphAdjacencyMatrix.from_adj_list(graph0)
+
+    print(f"Number of vertices: {graph2.V()}")
+    print(f"Number of edges: {graph2.E()}")
+
+    for v in range(graph2.V()):
+        print(f"Adjacent vertices of {v}: {graph2.adj(v)}")
+
+    # testing adj matrix 2 adj list
+    print("testing adj matrix 2 adj list")
+    graph3 = GraphAdjacencyList.from_adj_matrix(graph1)
+
+    print(f"Number of vertices: {graph3.V()}")
+    print(f"Number of edges: {graph3.E()}")
+
+    for v in range(graph3.V()):
+        print(f"Adjacent vertices of {v}: {graph3.adj(v)}")
+
+
+main() if __name__ == "__main__" else None
+\end{verbatim}
+
+\begin{verbatim}
+$ python3 graph.py
+>>> testing adjacency list
+>>> Number of vertices: 5
+>>> Number of edges: 8
+>>> Adjacent vertices of 0: [1, 4]
+>>> Adjacent vertices of 1: [2, 3]
+>>> Adjacent vertices of 2: [3]
+>>> Adjacent vertices of 3: [4]
+>>> Adjacent vertices of 4: [3, 1]
+>>> testing adjacency matrix
+>>> Number of vertices: 5
+>>> Number of edges: 8
+>>> Adjacent vertices of 0: [1, 4]
+>>> Adjacent vertices of 1: [2, 3]
+>>> Adjacent vertices of 2: [3]
+>>> Adjacent vertices of 3: [4]
+>>> Adjacent vertices of 4: [1, 3]
+>>> testing adj list 2 adj matrix
+>>> Number of vertices: 5
+>>> Number of edges: 8
+>>> Adjacent vertices of 0: [1, 4]
+>>> Adjacent vertices of 1: [2, 3]
+>>> Adjacent vertices of 2: [3]
+>>> Adjacent vertices of 3: [4]
+>>> Adjacent vertices of 4: [1, 3]
+>>> testing adj matrix 2 adj list
+>>> Number of vertices: 5
+>>> Number of edges: 8
+>>> Adjacent vertices of 0: [1, 4]
+>>> Adjacent vertices of 1: [2, 3]
+>>> Adjacent vertices of 2: [3]
+>>> Adjacent vertices of 3: [4]
+>>> Adjacent vertices of 4: [1, 3]
+\end{verbatim}
+
+\subsection*{(b) Pseudocode}
+
+\begin{algorithm}
+  \caption{Binary Label}
+  \begin{algorithmic}[1]
+    \Function{isBipartite}{G}
+    \State \textbf{initialize} marked as empty boolean array
+    \State \textbf{initialize} labels as empty boolean array
+    \State \textbf{initialize} canBipartite as \textbf{true}
+    \For{$s$ \textbf{in} vertices of $G$}
+    \If{not marked[$s$]}
+    \State \Call{dfs}{G, s, marked, labels}
+    \EndIf
+    \EndFor
+    \State \textbf{return} canBipartite
+    \EndFunction
+
+    \Function{dfs}{G, v, marked, labels}
+    \State marked[$v$] $\gets$ \textbf{true}
+    \For{$w$ \textbf{in} neighbors of $v$ in $G$}
+    \If{not marked[$w$]}
+    \State labels[$w$] $\gets$ \textbf{not} labels[$v$]
+    \State \Call{dfs}{G, w, marked, color}
+    \ElsIf{labels[$w$] == labels[$v$]}
+    \State canBipartite $\gets$ \textbf{false}
+    \EndIf
+    \EndFor
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
+\end{document}
