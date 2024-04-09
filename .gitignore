@@ -1,10 +1,10 @@
-**submission/
+*submission/
 
-**.DS_Store
+*.DS_Store
 
-**.venv
+*.venv/
 
-**.vscode
+*.vscode/
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
