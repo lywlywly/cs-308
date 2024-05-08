@@ -1,0 +1,311 @@
+\documentclass[10pt]{article}
+
+\usepackage[margin=1in]{geometry}
+% https://tex.stackexchange.com/questions/27802/set-noindent-for-entire-file
+\setlength\parindent{0pt}
+% https://tex.stackexchange.com/questions/9550/why-does-underlined-text-not-get-wrapped-once-it-hits-the-end-of-a-line
+\usepackage{soul}
+\usepackage{indentfirst}
+\usepackage{amsmath,amsthm,amssymb,scrextend}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+% \usepackage{fancyhdr}
+% \setlength{\headheight}{14.49998pt}
+% \pagestyle{fancy}
+\usepackage{graphicx}
+
+\newcommand{\cont}{\subseteq}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{width=10cm,compat=1.9}
+
+\usepackage{amsmath}
+\usepackage[mathscr]{euscript}
+\let\euscr\mathscr \let\mathscr\relax
+\usepackage[scr]{rsfso}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{multicol}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\DeclareMathOperator{\arcsec}{arcsec}
+\DeclareMathOperator{\arccot}{arccot}
+\DeclareMathOperator{\arccsc}{arccsc}
+\newcommand{\ddx}{\frac{d}{dx}}
+\newcommand{\dfdx}{\frac{df}{dx}}
+\newcommand{\ddxp}[1]{\frac{d}{dx}\left( #1 \right)}
+\newcommand{\dydx}{\frac{dy}{dx}}
+\let\ds\displaystyle
+\newcommand{\intx}[1]{\int #1 \, dx}
+\newcommand{\intt}[1]{\int #1 \, dt}
+\newcommand{\defint}[3]{\int_{#1}^{#2} #3 \, dx}
+\newcommand{\imp}{\Rightarrow}
+\newcommand{\un}{\cup}
+\newcommand{\inter}{\cap}
+\newcommand{\ps}{\mathscr{P}}
+\newcommand{\set}[1]{\left\{ #1 \right\}}
+\newtheorem*{sol}{Solution}
+\newtheorem*{claim}{Claim}
+\newtheorem{problem}{Problem}
+\def\mathbi#1{\textbf{\em #1}}
+\begin{document}
+
+% \lhead{Stats 303}
+% \chead{Luyao Wang lw337}
+% \rhead{\today}
+
+\begin{center}
+  {\Large \bf COMPSCI 308: Design and Analysis of Algorithms Homework 7}
+  \vspace{2mm}
+
+  {\bf Luyao Wang}
+
+  {\today}
+\end{center}
+
+\section*{1. Randomized Algorithms}
+
+\subsection*{(a) Expected Values}
+
+\begin{enumerate}
+  \item {
+        Let $k$ represent the number of elements in the direct-access table. We want to calculate the expected number of cases where a value located at an indexed location occurs earlier than another indexed location, yet with a larger value. The probability of this occurring for each pair is $0.5$.
+
+        Consider a specific pair of indices $(i, j)$, where $i < j$. The probability that the value at index $i$ occurs earlier and is larger than the value at index $j$ is also $0.5$.
+
+        The expected number of cases:
+
+        \[
+          E = \binom{k}{2} \times 0.5 = \frac{k(k - 1)}{4}
+        \]
+        }
+  \item {
+        Let's calculate $E(j)$ as the expected number of eliminated keys for padlock $j$ in the first iteration, considering the possibility of eliminating 1, 2, 3, up to k + 1 keys. By averaging these expected values, we can calculate the expected number of eliminated keys after a single run of this algorithm.
+
+        \begin{align*}E(j)
+           & = 1 \cdot \frac{n-k+1}{n} + 2 \cdot \frac{k}{n} \cdot \frac{n-k+1}{n} + 3 \cdot \frac{k}{n} \cdot \frac{k-1}{n} \cdot \frac{n-k+1}{n} + \cdots + (k+1) \cdot \frac{k}{n} \cdot \frac{k-1}{n} \cdot \cdots \cdot \frac{1}{n} \cdot \frac{n-k+1}{n} \\
+           & =  \frac{n-k+1}{n} (1 + 2 \cdot \frac{k}{n} + 3 \cdot \frac{k}{n} \cdot \frac{k-1}{n} + \cdots +  (k+1) \cdot \frac{k}{n} \cdot \frac{k-1}{n} \cdot \cdots \cdot \frac{1}{n})
+        \end{align*}
+
+        Expected number of eliminated keys after a single run of this algorithm $E$ is
+
+        \[E = \frac{\sum_{i = 1}^{k} E(i)}{k}\]
+        }
+\end{enumerate}
+
+\subsection*{(b) Algorithm Design}
+
+\begin{algorithmic}
+  \Function{RandomizedPartition}{$L$}
+  \State \Call{Shuffle}{$L$}
+  \State $L1 \gets [L[0]]$
+  \State $L2 \gets []$
+
+  \For{$\text{element}$ \textbf{in} $L[1:]$}
+  \If{$\text{element} < L1[0]$}
+  \State \Call{Append}{$L1$, element}
+  \Else
+  \State \Call{Append}{$L2$, element}
+  \EndIf
+  \EndFor
+
+  \State \Return $L1, L2$
+  \EndFunction
+\end{algorithmic}
+
+This pseudocode represents the randomized partition algorithm for dividing a given list $L$ into two sub-lists $L1$ and $L2$. The algorithm shuffles the list and picks the first element in the randomized list as a criterion, and iterates through each element, assigning it to either $L1$ or $L2$ based on whether it is smaller than the criterion or not. The asymptotic running time is $O(|L|)$ as the algorithm traverses the list $L$.  It is guaranteed that this algorithm will return a feasible partition satisfying $\text{length}(L1) + \text{length}(L2) \geq \text{length}(L) / 3$.
+
+\section*{2. Hash Tables}
+
+\subsection*{(a) Hash Functions}
+
+\begin{itemize}
+  \item {
+        $h(k) = 308$
+
+        \begin{itemize}
+          \item {
+                Advantages: It is the fastest in performance as it always return same value, and some compiler can optimize this constant value.
+                }
+          \item {
+                Disadvantages: It provides no distribution of keys. All keys will collide and map to the same hash value, leading to poor performance in hash-based data structures like hash tables. This lack of distribution can result in a high number of collisions and decreased efficiency.
+                }
+        \end{itemize}
+        }
+  \item {
+        $h(k) = k$
+
+        \begin{itemize}
+          \item {
+                Advantages: This hash function simply returns the input key itself as the hash value. It is also very fast in terms of performance. It ensures that each key maps to a unique hash value, which is desirable for many applications like direct-access table.
+                }
+          \item {
+                Disadvantages: The distribution of keys depends entirely on the distribution of the keys themselves. If the input keys are not well-distributed, it can lead to clustering and increased collisions. Additionally, if the universe of the keys are large, the resulting hash values can also be large, impacting the efficiency of hash-based data structures.
+                }
+        \end{itemize}
+        }
+  \item {
+        $h(k) = \text{random}(k)$
+
+        \begin{itemize}
+          \item {
+                Advantages: This hash function introduces an element of randomness based on the input key, which can help distribute the keys more evenly across the hash space. Randomization can reduce the likelihood of collisions and improve performance.
+                }
+          \item {
+                Disadvantages: The hash function is not deterministic. It means that the same key can produce different hash values in different invocations of the function. This makes it unusable to store and retrieve data in hash-based data structures since the hash values may not match consistently.
+                }
+        \end{itemize}
+        }
+  \item {
+        $h(k) = k + (k \text{mod} 227)$
+
+        \begin{itemize}
+          \item {
+                Advantages: This hash function incorporates the modulo operation to add some level of distribution to the hash values. It takes advantage of the modular arithmetic to introduce variation based on the input key.
+                }
+          \item {
+                Disadvantages: The disadvantage is that the distribution of the hash values depends on the distribution of the input keys and the modulus value. If the keys are not well-distributed or the modulus value is not carefully chosen, it can lead to clustering and increased collisions. Additionally, like in the case of $h(k) = k$, large universe of keys can result in large hash values impacting performance.
+                }
+        \end{itemize}
+        }
+\end{itemize}
+
+\subsection*{(b) Collision}
+
+\begin{itemize}
+  \item {
+        \textbf{Calculate the chance of having no collision with uniform hashing?}
+
+        Let's assume we have a hash function that distributes keys uniformly across a hash table with $n$ slots. The probability of a key not colliding with any other key can be calculated as follows:
+
+        For the first key, it has $n$ available slots, so the probability of it not colliding with any other key is $1$.
+
+        For the second key, it has $n-1$ slots available (excluding the slot occupied by the first key). The probability of the second key not colliding with the first key is $\frac{n-1}{n}$.
+
+        \begin{align*}P(\text{no collision for \textit{k} keys})
+           & = \frac{n}{n} \cdot \frac{n-1}{n} \cdot \frac{n-2}{n} \cdot \cdots \cdot \frac{n-(k-1)}{n} \\
+           & =  \frac{(n-1)!}{n^{k-1}(n-k)!}
+        \end{align*}
+
+        Notice that if $k$ gets larger than $n$, the formula above does not work and the possibility of having no collision with uniform hashing is $0$ as it is not possible to distribute more than $n$ keys in $n$ slots.
+        }
+  \item {
+        \textbf{Calculate the chance of having collision, all the actual keys are hashed to only one key in the hash table, with uniform hashing?}
+
+        The probability of a single key being hashed to a specific slot is $\frac{1}{n}$. Since there are $k$ keys, the probability of all $k$ keys being hashed to the same slot is $(\frac{1}{n})^k$.
+
+        There are '$n$ slots available, and any of these slots can be the one where all keys are hashed. Therefore, we multiply the above probability by $n$ to cover all possible slots:
+
+
+        \[P(\text{all keys hashed to one slot }) = n \times (\frac{1}{n})^k = (\frac{1}{n})^{k-1} \]
+        }
+\end{itemize}
+
+\section*{3. P/NP/+}
+
+\subsection*{(a) Easy}
+
+\begin{algorithmic}
+  \Function{DistributeCards}{$\text{cards}$}
+  \State $n \gets \text{length}(\text{cards})$
+  \State $a \gets \text{value of first card value in }\text{cards}$
+  \State $b \gets \text{value of second card value in }\text{cards}$
+  \State $x \gets \text{count of cards with value } a$
+  \State $y \gets \text{count of cards with value } b$
+  \State $totalSum \gets \text{sum of all card values in }\text{cards}$
+  \If{$totalSum \mod 2 \neq 0$ \textbf{or} $x \cdot y \neq n$}
+  \State \Return \textbf{null} \Comment{No solution exists}
+  \EndIf
+
+  \State $halfSum \gets totalSum / 2$
+
+  \For{$i \gets 0$ to $x$}
+  \For{$j \gets 0$ to $y$}
+  \If{$i \cdot a + j \cdot b = \text{halfSum}$}
+  \State $\text{distribution} \gets$ \Call{CreateDistribution}{$i, j, a, b$}
+  \State \Return $\text{distribution}$
+  \EndIf
+  \EndFor
+  \EndFor
+
+  \State \Return \textbf{null} \Comment{No solution exists}
+  \EndFunction
+
+  \Function{CreateDistribution}{$i, j, a, b$}
+  \State $\text{person1} \gets$ List of $i$ cards with value $a$
+  \State $\text{person2} \gets$ List of $j$ cards with value $b$
+  \State \Return [$\text{person1}$, $\text{person2}$]
+  \EndFunction
+\end{algorithmic}
+
+The asymptotic time complexity of this algorithm is $O(n^2)$.
+
+\subsection*{(b) Hard}
+
+To prove the NP-hardness of the gift card distribution problem, we reduce it to the well-known NP-complete subset sum problem. The subset sum problem asks whether there exists a subset of positive integers that sums up to a given target.
+
+By constructing an instance of the gift card distribution problem based on the subset sum problem, we establish the reduction. If there is a subset in the original set with a sum equal to the target, we can distribute gift cards in a way that ensures each person receives the same total amount. Therefore, the gift card distribution problem is also NP-hard, following the NP-hardness of the subset sum problem.
+
+\section*{4. Approximation Algorithms}
+
+\begin{algorithm}
+  \caption{GreedyKnapsack}
+  \begin{algorithmic}[1]
+    \Require Values of items: $v_1, v_2, \ldots, v_n$
+    \Require Sizes of items: $s_1, s_2, \ldots, s_n$
+    \Require Knapsack capacity: $C$
+    \Ensure Subset $S$ of items
+
+    \State Initialize empty subset $S \gets \{\}$
+    \State Initialize current capacity $current\_capacity \gets C$
+
+    \State Sort the items based on the value-to-size ratio in non-increasing order
+
+    \For{$i \gets 1$ to $n$}
+    \If{$current\_capacity \geq s_i$}
+    \State Add item $i$ to $S$
+    \State Subtract $s_i$ from $current\_capacity$
+    \EndIf
+    \EndFor
+
+    \State \Return Subset $S$
+  \end{algorithmic}··
+\end{algorithm}···
+·
+Let $k$ be the index of the first item that is not accepted by \textbf{GreedyKnapsack}. $v_1 +v_2 + \cdots + p_k \geq OPT$. In fact,  $v_1 +v_2 + \cdots + \alpha p_k \geq OPT$ where $\alpha = \frac{C-(s_1+s_2+ \cdots +s_k-1)}{s_k}$
+is the fraction of item $k$ that can still fit in the knapsack after····packing the first $k - 1$ items.
+
+Either $s_1+s_2+ \cdots +s_k-1$ or $s_{k-1}$ must be at least $OPT/2$. Therefore, the approximation ratio of $2$ is proved.
+
+\end{document}
